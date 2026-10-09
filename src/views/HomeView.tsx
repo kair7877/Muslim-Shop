@@ -178,19 +178,39 @@ export function HomeView() {
             </div>
           </section>
 
-          <Section
-            title={dict.popular}
-            products={popular.length ? popular : products.slice(0, 8)}
-            labels={labels}
-          />
+          {products.length === 0 ? (
+            <div className="ms-container pt-9 md:pt-12">
+              <div className="h-7 w-48 bg-mist rounded mb-6 animate-pulse" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+                {[1, 2, 3, 4].map((n) => (
+                  <div key={n} className="overflow-hidden rounded-[4px] border border-line bg-white animate-pulse">
+                    <div className="aspect-[9/16] bg-mist" />
+                    <div className="p-3.5 space-y-2">
+                      <div className="h-4 bg-mist rounded w-3/4" />
+                      <div className="h-3 bg-mist rounded w-1/2" />
+                      <div className="h-6 bg-mist rounded w-1/3 mt-3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <Section
+                title={dict.popular}
+                products={popular.length ? popular : products.slice(0, 8)}
+                labels={labels}
+              />
 
-          <Section
-            title={dict.newItems}
-            products={newest.length ? newest : products.slice(8, 12)}
-            labels={labels}
-          />
+              <Section
+                title={dict.newItems}
+                products={newest.length ? newest : products.slice(8, 12)}
+                labels={labels}
+              />
 
-          <Section title={dict.recommended} products={recommended} labels={labels} />
+              <Section title={dict.recommended} products={recommended} labels={labels} />
+            </>
+          )}
 
           <section className="ms-container pt-12 md:pt-16">
             <div className="rounded-[4px] border border-line bg-white p-6 md:p-9 shadow-xs">

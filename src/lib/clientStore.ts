@@ -197,8 +197,8 @@ export function getCachedStoreData(): {
   categories: RawCategory[];
   settings: ShopSettings;
 } {
-  let products = [...INITIAL_PRODUCTS];
-  let categories = [...INITIAL_CATEGORIES];
+  let products: RawProduct[] = [];
+  let categories: RawCategory[] = [...INITIAL_CATEGORIES];
   let settings = { ...DEFAULT_SETTINGS };
 
   if (typeof window !== "undefined") {
