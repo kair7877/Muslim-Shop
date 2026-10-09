@@ -80,7 +80,7 @@ export function HomeView() {
           <div className="grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <div className="inline-block rounded-[2px] bg-ink px-3 py-1 text-xs font-black uppercase tracking-widest text-gold-soft mb-3">
-                Атырау • ТД «Дина Байзар» • Бутик №24
+                Атырау • ТД «Дина рынок» • Бутик №24
               </div>
               <h1 className="text-[26px] font-black leading-tight text-ink sm:text-[34px] md:text-[42px]">
                 {lang === "kz" ? "MUSLIM SHOP интернет-дүкені" : "Интернет-магазин MUSLIM SHOP"}

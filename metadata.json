@@ -1,6 +1,6 @@
 {
   "name": "MUSLIM SHOP — интернет-магазин, Атырау",
-  "description": "MUSLIM SHOP: товары для здоровья, красоты и повседневной жизни. Атырау, ТД Дина Байзар, бутик №24.",
+  "description": "MUSLIM SHOP: товары для здоровья, красоты и повседневной жизни. Атырау, ТД Дина рынок, бутик №24.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
