@@ -74,25 +74,32 @@ function parseHref(href: string): { pathname: string; search: string } {
   }
 }
 
-export function RouterProvider({ children }: { children: ReactNode }) {
-  const [currentUrl, setCurrentUrl] = useState(() => {
-    if (typeof window === "undefined") {
-      return { pathname: "/", search: "" };
-    }
-    const rawPath = window.location.pathname || "/";
+function parseInitialPath(): { pathname: string; search: string } {
+  if (typeof window === "undefined") {
+    return { pathname: "/", search: "" };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get("p");
+  if (p) {
+    params.delete("p");
+    const remainingSearch = params.toString() ? `?${params.toString()}` : "";
     return {
-      pathname: stripBasePath(rawPath),
-      search: window.location.search || "",
+      pathname: p.startsWith("/") ? p : `/${p}`,
+      search: remainingSearch,
     };
-  });
+  }
+  return {
+    pathname: stripBasePath(window.location.pathname || "/"),
+    search: window.location.search || "",
+  };
+}
+
+export function RouterProvider({ children }: { children: ReactNode }) {
+  const [currentUrl, setCurrentUrl] = useState(() => parseInitialPath());
 
   useEffect(() => {
     const onPopState = () => {
-      const rawPath = window.location.pathname || "/";
-      setCurrentUrl({
-        pathname: stripBasePath(rawPath),
-        search: window.location.search || "",
-      });
+      setCurrentUrl(parseInitialPath());
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);

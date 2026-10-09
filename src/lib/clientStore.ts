@@ -189,15 +189,57 @@ export function mapCategory(docId: string, data: DocumentData): RawCategory {
 const LOCAL_PRODUCTS_KEY = "ms_local_products_v2";
 const LOCAL_CATEGORIES_KEY = "ms_local_categories_v2";
 const LOCAL_ORDERS_KEY = "ms_local_orders_v2";
+const LAST_FETCH_TIME_KEY = "ms_last_fetch_time_v2";
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache TTL to protect Firebase quota
 
-export async function loadStoreData(): Promise<{
+export function getCachedStoreData(): {
+  products: RawProduct[];
+  categories: RawCategory[];
+  settings: ShopSettings;
+} {
+  let products = [...INITIAL_PRODUCTS];
+  let categories = [...INITIAL_CATEGORIES];
+  let settings = { ...DEFAULT_SETTINGS };
+
+  if (typeof window !== "undefined") {
+    try {
+      const cachedProds = window.localStorage.getItem(LOCAL_PRODUCTS_KEY);
+      if (cachedProds) {
+        const parsed = JSON.parse(cachedProds);
+        if (Array.isArray(parsed) && parsed.length > 0) products = parsed;
+      }
+      const cachedCats = window.localStorage.getItem(LOCAL_CATEGORIES_KEY);
+      if (cachedCats) {
+        const parsed = JSON.parse(cachedCats);
+        if (Array.isArray(parsed) && parsed.length > 0) categories = parsed;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return { products, categories, settings };
+}
+
+export async function loadStoreData(forceRefresh = false): Promise<{
   products: RawProduct[];
   categories: RawCategory[];
   settings: ShopSettings;
 }> {
-  let products: RawProduct[] = [];
-  let categories: RawCategory[] = [];
-  let settings: ShopSettings = { ...DEFAULT_SETTINGS };
+  const cached = getCachedStoreData();
+  const lastFetch =
+    typeof window !== "undefined"
+      ? Number(window.localStorage.getItem(LAST_FETCH_TIME_KEY) || 0)
+      : 0;
+  const isFresh = Date.now() - lastFetch < CACHE_TTL_MS;
+
+  // If cache is fresh and not forced, return immediately with zero network latency
+  if (!forceRefresh && isFresh && cached.products.length > 0) {
+    return cached;
+  }
+
+  let products = cached.products;
+  let categories = cached.categories;
+  let settings: ShopSettings = cached.settings;
 
   try {
     const db = getFirebaseClientFirestore();
@@ -217,47 +259,23 @@ export async function loadStoreData(): Promise<{
       const raw = settingsSnapshot.data();
       for (const key of Object.keys(settings) as (keyof ShopSettings)[]) {
         const value = raw[key];
-        if (typeof value === "string" && value.trim()) settings[key] = value.trim();
+        if (typeof value === "string" && value.trim()) (settings as any)[key] = value.trim();
       }
     }
-  } catch (err) {
-    console.warn("Firestore fetch attempt note:", err);
-  }
 
-  // Fallback / merge with local storage and default seed if empty
-  if (typeof window !== "undefined") {
-    try {
-      const cachedProds = window.localStorage.getItem(LOCAL_PRODUCTS_KEY);
-      if (cachedProds && products.length === 0) {
-        products = JSON.parse(cachedProds);
-      }
-      const cachedCats = window.localStorage.getItem(LOCAL_CATEGORIES_KEY);
-      if (cachedCats && categories.length === 0) {
-        categories = JSON.parse(cachedCats);
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  if (products.length === 0) {
-    products = [...INITIAL_PRODUCTS];
-  }
-  if (categories.length === 0) {
-    categories = [...INITIAL_CATEGORIES];
-  }
-
-  // Persist locally for high responsiveness
-  if (typeof window !== "undefined") {
-    try {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LAST_FETCH_TIME_KEY, String(Date.now()));
       window.localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
       window.localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(categories));
-    } catch {
-      // ignore
     }
+  } catch (err) {
+    console.warn("Firestore quiet sync:", err);
   }
 
-  products.sort((a, b) => Number(b.isHit) - Number(a.isHit) || Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  products.sort(
+    (a, b) =>
+      Number(b.isHit) - Number(a.isHit) || Date.parse(b.createdAt) - Date.parse(a.createdAt)
+  );
   categories.sort((a, b) => a.order - b.order || a.nameRu.localeCompare(b.nameRu, "ru"));
   settings.address = settings.address.replace(/\s*,\s*,+/g, ",");
 
