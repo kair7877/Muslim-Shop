@@ -53,7 +53,7 @@ export function ProductCard({
     <article className="flex h-full flex-col overflow-hidden rounded-[4px] border border-line bg-white transition-all hover:border-graphite hover:shadow-md">
       <Link
         href={`/product/?id=${encodeURIComponent(product.id)}`}
-        className="relative block bg-mist"
+        className="relative block bg-mist aspect-[9/16] overflow-hidden"
         aria-label={product.name}
       >
         {product.image && !broken ? (
@@ -62,10 +62,10 @@ export function ProductCard({
             alt={product.name}
             loading="lazy"
             onError={() => setBroken(true)}
-            className="aspect-square w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
           />
         ) : (
-          <span className="flex aspect-square w-full items-center justify-center bg-mist px-3 text-center text-[15px] font-semibold text-muted">
+          <span className="flex h-full w-full items-center justify-center bg-mist px-3 text-center text-[15px] font-semibold text-muted">
             {product.name.slice(0, 48)}
           </span>
         )}

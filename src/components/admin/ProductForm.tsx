@@ -10,22 +10,25 @@ async function compress(file: File): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+  // If image is under 4MB, preserve 100% original crystal-clear photo without loss
+  if (file.size <= 4 * 1024 * 1024) {
+    return raw;
+  }
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
     el.onload = () => resolve(el);
     el.onerror = reject;
     el.src = raw;
   });
-  const scale = Math.min(1, 1000 / Math.max(image.width, image.height));
+  const maxDim = 2560;
+  const scale = Math.min(1, maxDim / Math.max(image.width, image.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(image.width * scale);
   canvas.height = Math.round(image.height * scale);
   const ctx = canvas.getContext("2d");
   if (!ctx) return raw;
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.82);
+  return canvas.toDataURL(file.type || "image/jpeg", 0.95);
 }
 
 export function ProductForm({ product }: { product?: RawProduct }) {

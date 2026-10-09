@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useSearchParams } from "@/lib/router";
 import { useLanguage, useStore } from "@/components/ClientProviders";
 import { ProductActions } from "@/components/ProductActions";
@@ -5,6 +6,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { ProductCard, type CardProduct } from "@/components/ProductCard";
 import { cleanTitle, parseSpecs, type RawProduct } from "@/lib/clientStore";
 import { formatTenge } from "@/lib/shop";
+import { trackProductView } from "@/lib/analytics";
 
 function card(p: RawProduct, name: string, category: string): CardProduct {
   return {
@@ -29,6 +31,13 @@ export function ProductView() {
   const { productById, products, categories, loading, settings } = useStore();
 
   const product = productById(id);
+
+  useEffect(() => {
+    if (product) {
+      const pName = cleanTitle(product.titleRu);
+      trackProductView(product.docId, pName);
+    }
+  }, [product]);
 
   if (loading) {
     return (

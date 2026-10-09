@@ -83,11 +83,6 @@ export function Footer() {
                 {dict.namaz}
               </Link>
             </li>
-            <li>
-              <Link href="/admin/" className="text-white/60 hover:text-gold-soft">
-                {dict.adminPanel}
-              </Link>
-            </li>
           </ul>
         </div>
 

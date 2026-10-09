@@ -14,16 +14,16 @@ export function ProductGallery({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-[4px] border border-line bg-mist">
+      <div className="overflow-hidden rounded-[4px] border border-line bg-mist aspect-[9/16] max-h-[620px] flex items-center justify-center">
         {hasImage ? (
           <img
             src={current.src}
             alt={current.alt || name}
             onError={() => setBroken(true)}
-            className="aspect-square w-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <span className="flex aspect-square w-full items-center justify-center px-6 text-center text-[18px] font-semibold text-muted">
+          <span className="flex h-full w-full items-center justify-center px-6 text-center text-[18px] font-semibold text-muted">
             {name}
           </span>
         )}

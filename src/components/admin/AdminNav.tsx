@@ -4,6 +4,7 @@ import { getFirebaseClientAuth } from "@/lib/firebaseClient";
 
 const LINKS = [
   { href: "/admin/", label: "Обзор" },
+  { href: "/admin/analytics/", label: "Статистика" },
   { href: "/admin/products/", label: "Товары" },
   { href: "/admin/categories/", label: "Категории" },
   { href: "/admin/orders/", label: "Заказы" },

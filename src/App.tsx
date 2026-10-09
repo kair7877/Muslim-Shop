@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link, RouterProvider, usePathname } from "@/lib/router";
 import { CartProvider } from "@/components/CartProvider";
 import { ClientProviders } from "@/components/ClientProviders";
@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { initVisitorSession } from "@/lib/analytics";
 
 import { HomeView } from "@/views/HomeView";
 import { CatalogView } from "@/views/CatalogView";
@@ -25,6 +26,7 @@ import { AdminProductEditView } from "@/views/AdminProductEditView";
 import { AdminCategoriesView } from "@/views/AdminCategoriesView";
 import { AdminOrdersView } from "@/views/AdminOrdersView";
 import { AdminOrderSingleView } from "@/views/AdminOrderSingleView";
+import { AdminAnalyticsView } from "@/views/AdminAnalyticsView";
 
 function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -64,6 +66,10 @@ function MainRouter() {
   const pathname = usePathname();
   const normalized = pathname.endsWith("/") ? pathname : `${pathname}/`;
 
+  useEffect(() => {
+    initVisitorSession();
+  }, []);
+
   // Admin routes
   if (normalized === "/admin/login/") {
     return (
@@ -78,6 +84,7 @@ function MainRouter() {
       <AdminGuard>
         <AdminLayout>
           {normalized === "/admin/" && <AdminDashboardView />}
+          {normalized === "/admin/analytics/" && <AdminAnalyticsView />}
           {normalized === "/admin/products/" && <AdminProductsView />}
           {normalized === "/admin/products/new/" && <AdminProductNewView />}
           {normalized === "/admin/products/edit/" && <AdminProductEditView />}

@@ -60,28 +60,34 @@ export function Header() {
             >
               Telegram
             </a>
-            <span className="h-4 w-px bg-white/25" />
-            <Link href="/admin/" className="font-bold text-gold-soft hover:text-white">
-              {dict.adminPanel}
-            </Link>
           </div>
         </div>
       </div>
 
       <div className="ms-container flex flex-wrap items-center gap-2 py-2.5 md:gap-3 md:py-3">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-ink text-[19px] font-black tracking-tight text-gold-soft md:h-14 md:w-14 md:text-[22px]">
-            MS
-          </span>
-          <span className="leading-none">
-            <span className="block text-[19px] font-black uppercase tracking-[0.02em] text-ink md:text-[22px]">
+        <div className="flex shrink-0 items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-ink text-[19px] font-black tracking-tight text-gold-soft md:h-14 md:w-14 md:text-[22px]">
+              MS
+            </span>
+          </Link>
+          <div className="leading-none">
+            <Link href="/" className="block text-[19px] font-black uppercase tracking-[0.02em] text-ink md:text-[22px]">
               Muslim Shop
-            </span>
-            <span className="mt-1 hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted sm:block">
-              {settings.city} · {settings.boutiqueNumber}
-            </span>
-          </span>
-        </Link>
+            </Link>
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+              <span>{settings.city} · {settings.boutiqueNumber}</span>
+              <Link
+                href="/admin/login/"
+                className="opacity-30 hover:opacity-100 transition-opacity ml-0.5 text-[11px]"
+                title="Панель"
+                aria-label="Вход"
+              >
+                🔒
+              </Link>
+            </div>
+          </div>
+        </div>
 
         <div className="order-last w-full lg:order-none lg:w-auto lg:flex-1">
           <SearchBox
@@ -106,7 +112,6 @@ export function Header() {
               { href: "/about/", label: dict.about },
               { href: "/contacts/", label: dict.contacts },
               { href: "/namaz/", label: dict.namaz },
-              { href: "/admin/", label: dict.adminPanel },
             ]}
           />
           <div className="hidden lg:block">

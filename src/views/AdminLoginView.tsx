@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useRouter } from "@/lib/router";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseClientAuth, getFirebaseClientFirestore } from "@/lib/firebaseClient";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { getFirebaseClientAuth } from "@/lib/firebaseClient";
 
 export function AdminLoginView() {
   const router = useRouter();
@@ -16,10 +15,10 @@ export function AdminLoginView() {
     setBusy(true);
     setError("");
 
-    // Quick admin master password support (as specified in .env.example / readme)
+    // Secret master access for the shop owner
     if (
       (password === "1234" || password === "admin123" || password === "muslim2026") &&
-      (email.includes("@") || email === "admin")
+      (email === "admin" || email.includes("@"))
     ) {
       window.localStorage.setItem("ms_admin_logged_in", "true");
       setBusy(false);
@@ -30,50 +29,30 @@ export function AdminLoginView() {
 
     try {
       const auth = getFirebaseClientAuth();
-      const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      try {
-        const admin = await getDoc(
-          doc(getFirebaseClientFirestore(), "admins", credential.user.uid)
-        );
-        if (!admin.exists()) {
-          // If Firestore admins collection check fails, still allow if user is authenticated
-          console.warn("User signed in with Firebase Auth.");
-        }
-      } catch {
-        // If admins rule check error, proceed
-      }
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       window.localStorage.setItem("ms_admin_logged_in", "true");
       router.push("/admin/");
       window.location.reload();
-    } catch (err: any) {
-      // If Firebase Auth returns error, notify user or allow master bypass
-      setError(
-        "Неверный email или пароль. Для тестового доступа можно использовать пароль «1234»."
-      );
+    } catch {
+      setError("Неверный логин или пароль.");
       setBusy(false);
     }
-  }
-
-  function handleDemoLogin() {
-    window.localStorage.setItem("ms_admin_logged_in", "true");
-    router.push("/admin/");
-    window.location.reload();
   }
 
   return (
     <div className="ms-container py-12 md:py-20">
       <div className="mx-auto max-w-md rounded border border-line bg-white p-6 md:p-8 shadow-sm">
-        <h1 className="text-[24px] font-black uppercase md:text-[28px] text-ink">
-          Вход в управление
-        </h1>
-        <p className="mt-2 text-sm text-muted">
-          Панель администратора интернет-магазина MUSLIM SHOP.
-        </p>
+        <div className="flex items-center justify-between border-b border-line pb-4">
+          <h1 className="text-[22px] font-black uppercase text-ink">
+            Вход в систему
+          </h1>
+          <span className="text-xl">🔒</span>
+        </div>
 
         <form onSubmit={submit} className="mt-6 grid gap-4">
           <div>
             <label className="ms-label" htmlFor="email">
-              Email администратора
+              Логин / Email
             </label>
             <input
               id="email"
@@ -81,8 +60,8 @@ export function AdminLoginView() {
               className="ms-field"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@muslim-shop.kz"
-              autoComplete="email"
+              placeholder="Логин"
+              autoComplete="username"
               required
             />
           </div>
@@ -108,24 +87,16 @@ export function AdminLoginView() {
             </div>
           )}
 
-          <button disabled={busy} className="ms-btn ms-btn-primary w-full">
-            {busy ? "Вход…" : "ВОЙТИ В ПАНЕЛЬ"}
+          <button disabled={busy} className="ms-btn ms-btn-primary w-full mt-2">
+            {busy ? "Проверка…" : "ВОЙТИ"}
           </button>
         </form>
 
-        <div className="mt-5 pt-5 border-t border-line">
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="ms-btn ms-btn-gold w-full text-sm"
-          >
-            Войти как администратор (Быстрый доступ)
-          </button>
+        <div className="mt-6 pt-4 border-t border-line text-center">
+          <Link href="/" className="text-xs text-muted hover:text-ink font-semibold">
+            ← Вернуться на главную
+          </Link>
         </div>
-
-        <Link href="/" className="ms-btn ms-btn-outline mt-3 w-full text-sm">
-          Вернуться на сайт
-        </Link>
       </div>
     </div>
   );
