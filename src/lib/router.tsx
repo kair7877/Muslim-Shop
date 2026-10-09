@@ -17,6 +17,53 @@ type RouterContextValue = {
 
 const RouterContext = createContext<RouterContextValue | null>(null);
 
+const KNOWN_ROUTES = [
+  "catalog",
+  "category",
+  "product",
+  "cart",
+  "checkout",
+  "order",
+  "namaz",
+  "about",
+  "contacts",
+  "admin",
+];
+
+export function getBasePath(): string {
+  if (typeof window === "undefined") return "";
+  const parts = window.location.pathname.split("/").filter(Boolean);
+  if (parts.length > 0 && !KNOWN_ROUTES.includes(parts[0].toLowerCase())) {
+    return "/" + parts[0];
+  }
+  return "";
+}
+
+function stripBasePath(pathname: string): string {
+  const base = getBasePath();
+  if (base && pathname.startsWith(base)) {
+    const stripped = pathname.slice(base.length);
+    return stripped.startsWith("/") ? stripped : "/" + stripped;
+  }
+  return pathname;
+}
+
+export function addBasePath(href: string): string {
+  const base = getBasePath();
+  if (!base) return href;
+  if (
+    href.startsWith("http://") ||
+    href.startsWith("https://") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  ) {
+    return href;
+  }
+  if (href.startsWith(base)) return href;
+  const clean = href.startsWith("/") ? href : "/" + href;
+  return `${base}${clean}`;
+}
+
 function parseHref(href: string): { pathname: string; search: string } {
   try {
     const url = new URL(href, window.location.origin);
@@ -32,13 +79,18 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") {
       return { pathname: "/", search: "" };
     }
-    return { pathname: window.location.pathname || "/", search: window.location.search || "" };
+    const rawPath = window.location.pathname || "/";
+    return {
+      pathname: stripBasePath(rawPath),
+      search: window.location.search || "",
+    };
   });
 
   useEffect(() => {
     const onPopState = () => {
+      const rawPath = window.location.pathname || "/";
       setCurrentUrl({
-        pathname: window.location.pathname || "/",
+        pathname: stripBasePath(rawPath),
         search: window.location.search || "",
       });
     };
@@ -47,16 +99,18 @@ export function RouterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const push = useCallback((href: string) => {
-    const { pathname, search } = parseHref(href);
-    window.history.pushState({}, "", href);
-    setCurrentUrl({ pathname, search });
+    const targetWithBase = addBasePath(href);
+    const { pathname, search } = parseHref(targetWithBase);
+    window.history.pushState({}, "", targetWithBase);
+    setCurrentUrl({ pathname: stripBasePath(pathname), search });
     window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
   const replace = useCallback((href: string) => {
-    const { pathname, search } = parseHref(href);
-    window.history.replaceState({}, "", href);
-    setCurrentUrl({ pathname, search });
+    const targetWithBase = addBasePath(href);
+    const { pathname, search } = parseHref(targetWithBase);
+    window.history.replaceState({}, "", targetWithBase);
+    setCurrentUrl({ pathname: stripBasePath(pathname), search });
   }, []);
 
   const value = useMemo(
@@ -77,11 +131,13 @@ export function useRouter() {
   if (!ctx) {
     return {
       push: (href: string) => {
-        window.history.pushState({}, "", href);
+        const targetWithBase = addBasePath(href);
+        window.history.pushState({}, "", targetWithBase);
         window.dispatchEvent(new PopStateEvent("popstate"));
       },
       replace: (href: string) => {
-        window.history.replaceState({}, "", href);
+        const targetWithBase = addBasePath(href);
+        window.history.replaceState({}, "", targetWithBase);
         window.dispatchEvent(new PopStateEvent("popstate"));
       },
     };
@@ -91,13 +147,16 @@ export function useRouter() {
 
 export function usePathname(): string {
   const ctx = useContext(RouterContext);
-  if (!ctx) return window.location.pathname || "/";
+  if (!ctx) {
+    const raw = typeof window !== "undefined" ? window.location.pathname : "/";
+    return stripBasePath(raw);
+  }
   return ctx.pathname;
 }
 
 export function useSearchParams(): URLSearchParams {
   const ctx = useContext(RouterContext);
-  const searchStr = ctx ? ctx.search : window.location.search || "";
+  const searchStr = ctx ? ctx.search : typeof window !== "undefined" ? window.location.search || "" : "";
   return useMemo(() => new URLSearchParams(searchStr), [searchStr]);
 }
 
@@ -110,6 +169,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link
   ref
 ) {
   const { push } = useRouter();
+  const fullHref = addBasePath(href);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (onClick) onClick(e);
@@ -129,7 +189,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link
   };
 
   return (
-    <a ref={ref} href={href} onClick={handleClick} {...props}>
+    <a ref={ref} href={fullHref} onClick={handleClick} {...props}>
       {children}
     </a>
   );
